@@ -1,0 +1,12 @@
+# --- Asosiy ---
+aiogram>=3.13,<4
+aiohttp>=3.9
+SQLAlchemy>=2.0
+alembic>=1.13
+pydantic>=2.6
+pydantic-settings>=2.2
+
+# --- DB drayverlar ---
+aiosqlite>=0.19        # lokal dev (sqlite)
+asyncpg>=0.29          # prodaksn (postgres, fly.io)
+psycopg2-binary>=2.9   # alembic migratsiyalari (sync)
