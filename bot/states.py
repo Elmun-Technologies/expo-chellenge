@@ -36,3 +36,10 @@ class BroadcastFlow(StatesGroup):
     single_user = State()
     message = State()
     preview = State()
+    scheduled_time = State()
+
+
+class RandomFlow(StatesGroup):
+    count = State()
+    prize = State()
+    preview = State()

@@ -2,9 +2,11 @@
 from datetime import datetime, timedelta
 
 from bot.services.flags import (FLAG_JUMP, FLAG_NEGATIVE, compute_flags)
+from bot.services.random_draw import candidates_hash, pick_winners
 from bot.services.ranking import find_rank
-from bot.services.utils import (is_reels_link, mask_handle, normalize_insta,
-                                parse_date, parse_views)
+from bot.services.utils import (fmt_dt, is_reels_link, mask_handle,
+                                normalize_insta, parse_date, parse_views,
+                                tash_to_utc, utc_to_tash)
 
 
 class Obj:
@@ -69,3 +71,37 @@ class TestRanking:
         rows = [Obj(1, 500), Obj(2, 300), Obj(3, 100)]
         rank, total, idx = find_rank(rows, 2, views_key=lambda r: r.current_views)
         assert (rank, total, idx) == (2, 3, 1)
+
+
+class TestRandomDraw:
+    def test_pick_winners_deterministic(self):
+        import random
+        ids = [5, 1, 9, 3, 7]
+        w = pick_winners(ids, 2, rand=random.Random(42))
+        assert len(w) == 2
+        assert set(w) <= set(ids)
+        # bir xil seed = bir xil natija (takrorlanuvchanlik → tekshirish mumkin)
+        assert w == pick_winners(ids, 2, rand=random.Random(42))
+
+    def test_pick_more_than_candidates(self):
+        ids = [1, 2, 3]
+        w = pick_winners(ids, 10, rand=__import__("random").Random(1))
+        assert sorted(w) == [1, 2, 3]  # n > nomzodlar → hammasi olinadi
+
+    def test_empty(self):
+        assert pick_winners([], 3) == []
+
+    def test_hash_stable(self):
+        assert candidates_hash([3, 1, 2]) == candidates_hash([1, 2, 3])
+        assert candidates_hash([1, 2, 3]) != candidates_hash([1, 2, 4])
+        assert len(candidates_hash([1, 2, 3])) == 12
+
+
+class TestTimezone:
+    def test_roundtrip(self):
+        u = datetime(2026, 9, 7, 10, 0)
+        assert utc_to_tash(tash_to_utc(u)) == u
+
+    def test_fmt_dt_shows_tashkent(self):
+        # 10:00 UTC → Toshkentda 15:00
+        assert fmt_dt(datetime(2026, 9, 7, 10, 0)) == "07.09.2026 15:00"

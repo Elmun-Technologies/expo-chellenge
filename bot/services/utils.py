@@ -1,6 +1,18 @@
 """Formatlash va parslash utilitalari (aiogram'dan mustaqil — test uchun)."""
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
+
+# Baza UTC'da saqlanadi; foydalanuvchi Toshkent vaqtida (UTC+5) ko'radi/kiritadi
+TASHKENT = timedelta(hours=5)
+
+
+def tash_to_utc(dt: datetime) -> datetime:
+    """Toshkent naive vaqtni UTC naive'ga o'tkazish."""
+    return dt - TASHKENT
+
+
+def utc_to_tash(dt: datetime | None) -> datetime | None:
+    return dt + TASHKENT if dt is not None else None
 
 REELS_LINK = re.compile(
     r"^https?://(www\.)?instagram\.com/(reel|reels|p)/[A-Za-z0-9_-]{5,20}/?(\?.*)?$",
@@ -49,7 +61,9 @@ def fmt_int(n: int) -> str:
 
 
 def fmt_dt(dt: datetime | None) -> str:
-    return dt.strftime("%d.%m.%Y %H:%M") if dt else "—"
+    """Toshkent vaqtida ko'rsatish."""
+    t = utc_to_tash(dt)
+    return t.strftime("%d.%m.%Y %H:%M") if t else "—"
 
 
 def mask_handle(handle: str | None) -> str:

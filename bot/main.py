@@ -76,6 +76,10 @@ async def main():
     await run_health_server()
     await on_startup(bot)
 
+    # jadvaldagi rassilkalar yonish-fon jarayoni
+    from .handlers.broadcast import broadcast_scheduler
+    asyncio.create_task(broadcast_scheduler(bot))
+
     log.info("Polling boshlanyapti...")
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot, allowed_updates=["message", "callback_query"])

@@ -102,7 +102,8 @@ def kb_final_check(lang: str, expo_id: int):
 # ---------- admin ----------
 
 def kb_admin_panel(lang: str, *, has_active: bool, has_draft: bool,
-                   has_finished: bool):
+                   has_finished: bool, has_random: bool = False,
+                   scheduled_count: int = 0):
     b = InlineKeyboardBuilder()
     b.button(text=t(lang, "abtn_new_expo"), callback_data=f"{CB.ADMIN}:new")
     b.button(text=t(lang, "abtn_list"), callback_data=f"{CB.ADMIN}:list")
@@ -110,11 +111,16 @@ def kb_admin_panel(lang: str, *, has_active: bool, has_draft: bool,
         b.button(text=t(lang, "abtn_finish"), callback_data=f"{CB.ADMIN}:finish")
     if has_finished:
         b.button(text=t(lang, "abtn_winners"), callback_data=f"{CB.ADMIN}:winners")
+    if has_random:
+        b.button(text=t(lang, "abtn_random"), callback_data="rnd:start")
     b.button(text=t(lang, "abtn_broadcast"), callback_data=f"{CB.ADMIN}:bc")
     b.button(text=t(lang, "abtn_stats"), callback_data=f"{CB.ADMIN}:stats")
     b.button(text=t(lang, "abtn_export"), callback_data=f"{CB.ADMIN}:export")
     b.button(text=t(lang, "abtn_users"), callback_data=f"{CB.ADMIN}:users")
-    b.adjust(2, 2, 2, 2)
+    if scheduled_count:
+        b.button(text=t(lang, "abtn_scheduled", n=scheduled_count),
+                 callback_data="bc:sched_list")
+    b.adjust(2)
     return b.as_markup()
 
 
@@ -136,5 +142,45 @@ def kb_winners_confirm(expo_id: int, lang: str):
     b = InlineKeyboardBuilder()
     b.button(text=t(lang, "btn_announce"), callback_data=f"{CB.ADMIN}:winx:{expo_id}")
     b.button(text=t(lang, "btn_cancel"), callback_data=f"{CB.ADMIN}:menu")
+    b.adjust(1)
+    return b.as_markup()
+
+
+# ---------- random sovg'a ----------
+
+def kb_random_count(lang: str):
+    b = InlineKeyboardBuilder()
+    for n in (1, 2, 3, 4, 5):
+        b.button(text=str(n), callback_data=f"rnd:n:{n}")
+    b.button(text=t(lang, "btn_cancel"), callback_data=f"{CB.ADMIN}:menu")
+    b.adjust(5, 1)
+    return b.as_markup()
+
+
+def kb_rnd_preview(lang: str):
+    b = InlineKeyboardBuilder()
+    b.button(text=t(lang, "rnd_btn_go"), callback_data="rnd:go")
+    b.button(text=t(lang, "btn_cancel"), callback_data=f"{CB.ADMIN}:menu")
+    b.adjust(2)
+    return b.as_markup()
+
+
+# ---------- rassilka preview + jadval ----------
+
+def kb_bc_preview(lang: str):
+    b = InlineKeyboardBuilder()
+    b.button(text=t(lang, "bc_btn_now"), callback_data=f"{CB.BC}:now")
+    b.button(text=t(lang, "bc_btn_sched"), callback_data=f"{CB.BC}:sched")
+    b.button(text=t(lang, "btn_cancel"), callback_data=f"{CB.BC}:cancel")
+    b.adjust(2, 1)
+    return b.as_markup()
+
+
+def kb_unsched(items, lang: str):
+    b = InlineKeyboardBuilder()
+    for bc in items:
+        b.button(text=f"❌ #{bc.id}", callback_data=f"{CB.BC}:un:{bc.id}")
+    b.button(text="⬅️ Orqaga" if lang == "uz" else "⬅️ Назад",
+             callback_data=f"{CB.ADMIN}:menu")
     b.adjust(1)
     return b.as_markup()

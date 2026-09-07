@@ -203,6 +203,40 @@ TEXTS: dict[str, dict[str, str]] = {
 
         # ---- eksport ----
         "export_done": "📤 CSV fayllar tayyor.",
+
+        # ---- random sovg'a ----
+        "abtn_random": "🎲 Random sovg'a",
+        "rnd_none": "⚠️ Yaroqli nomzod yo'q (hamma tasdiqlanganlar asosiy sovg'alar ro'yxatida yoki hech kim tasdiqlanmagan).",
+        "rnd_choose_count": "🎲 Nechta g'olib tanlaymiz?",
+        "rnd_ask_prize": "🎁 Random sovg'a nomini yozing (masalan: <code>AirPods Pro</code>):",
+        "rnd_preview": (
+            "🎲 <b>{expo}</b> — random sovg'a o'yini\n\n"
+            "🎁 Sovg'a: <b>{prize}</b> × {count}\n"
+            "👥 Yaroqli nomzodlar: <b>{total}</b>\n"
+            "🔐 Nomzodlar ro'yxati xeshi: <code>{hash}</code>\n\n"
+            "Boshlaymizmi? (xesh saqlanadi — haqoniylik isboti)"
+        ),
+        "rnd_btn_go": "🎲 Boshlash",
+        "rnd_announce": (
+            "🎲 <b>{expo}</b> — RANDOM SOVG'A g'oliblari!\n"
+            "🎁 Sovg'a: <b>{prize}</b>\n\n{lines}\n"
+            "🔐 Tekshiruv kodi: <code>{hash}</code>"
+        ),
+        "rnd_winner_pm": "🎉 Tabriklaymiz! Siz <b>{expo}</b> challenge'ining random sovg'asida yutdingiz!\n🎁 Sovg'a: <b>{prize}</b>",
+        "rnd_line": "🎉 {i}. {name} ({insta})\n",
+        "rnd_done": "✅ Random o'yin o'tkazildi. G'oliblar xabardor qilindi.",
+
+        # ---- jadval rassilkasi ----
+        "bc_btn_now": "🚀 Hozir yuborish",
+        "bc_btn_sched": "⏰ Jadvalga qo'yish",
+        "bc_ask_sched": "⏰ Qachon yuborilsin? Toshkent vaqtida yozing (masalan: <code>25.09.2026 20:30</code>):",
+        "bc_scheduled_ok": "⏰ Rassilka jadvalga qo'yildi: <b>{when}</b> (Toshkent)",
+        "bc_bad_time": "❌ Sana noto'g'ri yoki o'tib ketgan. Qayta yozing:",
+        "abtn_scheduled": "🕐 Jadvaldagi rassilkalar ({n})",
+        "sched_line": "• #{id} — {when} — {target}",
+        "sched_empty": "Jadvalda rassilka yo'q.",
+        "unsched_done": "❌ #{id} bekor qilindi",
+        "group_top_title": "🏆 {expo} — TOP",
     },
 
     "ru": {
@@ -386,6 +420,40 @@ TEXTS: dict[str, dict[str, str]] = {
         "stats_no_expo": "Expo пока нет.",
 
         "export_done": "📤 CSV-файлы готовы.",
+
+        # ---- случайный приз ----
+        "abtn_random": "🎲 Случайный приз",
+        "rnd_none": "⚠️ Нет подходящих кандидатов (все подтверждённые уже в призах или никто не подтверждён).",
+        "rnd_choose_count": "🎲 Сколько победителей выбираем?",
+        "rnd_ask_prize": "🎁 Название случайного приза (например: <code>AirPods Pro</code>):",
+        "rnd_preview": (
+            "🎲 <b>{expo}</b> — случайный розыгрыш\n\n"
+            "🎁 Приз: <b>{prize}</b> × {count}\n"
+            "👥 Подходящих кандидатов: <b>{total}</b>\n"
+            "🔐 Хеш списка кандидатов: <code>{hash}</code>\n\n"
+            "Начинаем? (хеш сохраняется — доказательство честности)"
+        ),
+        "rnd_btn_go": "🎲 Запустить",
+        "rnd_announce": (
+            "🎲 <b>{expo}</b> — победители СЛУЧАЙНОГО розыгрыша!\n"
+            "🎁 Приз: <b>{prize}</b>\n\n{lines}\n"
+            "🔐 Проверочный код: <code>{hash}</code>"
+        ),
+        "rnd_winner_pm": "🎉 Поздравляем! Вы выиграли случайный приз <b>{expo}</b>!\n🎁 Приз: <b>{prize}</b>",
+        "rnd_line": "🎉 {i}. {name} ({insta})\n",
+        "rnd_done": "✅ Розыгрыш проведён. Победители уведомлены.",
+
+        # ---- отложенная рассылка ----
+        "bc_btn_now": "🚀 Отправить сейчас",
+        "bc_btn_sched": "⏰ Запланировать",
+        "bc_ask_sched": "⏰ Когда отправить? Время Ташкента (например: <code>25.09.2026 20:30</code>):",
+        "bc_scheduled_ok": "⏰ Рассылка запланирована: <b>{when}</b> (Ташкент)",
+        "bc_bad_time": "❌ Неверная дата или уже прошла. Ещё раз:",
+        "abtn_scheduled": "🕐 Запланированные рассылки ({n})",
+        "sched_line": "• #{id} — {when} — {target}",
+        "sched_empty": "Запланированных рассылок нет.",
+        "unsched_done": "❌ #{id} отменена",
+        "group_top_title": "🏆 {expo} — ТОП",
     },
 }
 

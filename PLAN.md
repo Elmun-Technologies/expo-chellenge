@@ -164,10 +164,9 @@ Tanlangan logika: **faqat prosmotr bo'yicha**.
      mukofot topshirish uchun kontakti).
 
 > [!NOTE]
-> Dastlabki rejada "random g'olib" ham so'z bo'lgan edi, lekin tanlov
-> "faqat prosmotr"ga tushdi. Agar qo'shimcha ta'sirchan sovg'alar uchun
-> random kerak bo'lsa — uni keyin alohida modul qilib qo'shamiz
-> (DB uyasi tayyor bo'ladi).
+> **Amalga oshirildi** ✅ — asosiy g'olib prosmotr bo'yicha + qo'shimcha
+> **🎲 Random sovg'a moduli** alohida (asosiy top-N chiqarib tashlangan
+> ishtirokchilar orasidan, sha256-xesh bilan shaffof).
 
 ---
 
@@ -364,9 +363,14 @@ expo-chellenge/
 3. Sovg'alar ro'yxatini admin har Expo uchun o'zi kiritadi
    (nechta o'rin bo'lsa).
 4. Telefon tasdig'i kifoya (passport kerak emas).
-5. Rassilka — "hozir yuborish" rejimi (scheduled keyin qo'shiladi).
+5. ✅ **Rassilka jadvali (scheduled)** ham amalga oshirildi — Toshkent
+   vaqtida belgilab qo'yiladi, ichki scheduler o'zi yuboradi.
 6. Bir ishtirokchida **bitta faol video** (prosmotrlar esa cheksiz
    yangilanadi) — adolat uchun.
+7. ✅ **Guruh ichida tezkor statistika** — review guruhida `/stats` va
+   `/top` buyruqlari (faqat admin/moderatorlarga).
+8. ✅ **Vaqt zonasi** — hamma sanalar Toshkent (UTC+5) da kiritiladi va
+   ko'rsatiladi, bazada UTC saqlanadi.
 
 ---
 

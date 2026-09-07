@@ -13,7 +13,7 @@ from ..i18n import t
 from ..keyboards import (kb_activate, kb_admin_panel, kb_cancel,
                          kb_finish_confirm, kb_winners_confirm)
 from ..services.ranking import medal
-from ..services.utils import fmt_dt, fmt_int, parse_date
+from ..services.utils import fmt_dt, fmt_int, parse_date, tash_to_utc
 from ..states import ExpoCreate
 
 router = Router(name="admin")
@@ -32,9 +32,13 @@ async def _open_panel(target: Message | CallbackQuery, session, lang, user_id):
     expos = await repo.list_expos(session)
     has_draft = any(e.status == ExpoStatus.DRAFT for e in expos)
     has_finished = any(e.status == ExpoStatus.FINISHED for e in expos)
+    latest = expos[0] if expos else None
+    has_random = bool(latest and await repo.count_submissions(
+        session, latest.id, "approved"))
+    scheduled_count = await repo.count_scheduled_broadcasts(session)
     kb = kb_admin_panel(lang, has_active=active is not None,
-                        has_draft=has_draft,
-                        has_finished=has_finished)
+                        has_draft=has_draft, has_finished=has_finished,
+                        has_random=has_random, scheduled_count=scheduled_count)
     text = t(lang, "admin_menu")
     if isinstance(target, CallbackQuery):
         await target.message.edit_text(text, reply_markup=kb)
@@ -131,7 +135,9 @@ async def expo_start(message: Message, state: FSMContext):
     dt = parse_date(message.text)
     if dt is None:
         return await message.answer(t("uz", "bad_date"))
-    await state.update_data(start_at=dt.isoformat())
+    # kirgizmo Toshkent vaqti — bazaga UTC'da yozamiz
+    await state.update_data(start_at=tash_to_utc(dt).isoformat(),
+                            start_disp=dt.strftime("%d.%m.%Y %H:%M"))
     await state.set_state(ExpoCreate.end)
     await message.answer(t("uz", "expo_ask_end"), reply_markup=kb_cancel("uz"))
 
@@ -142,7 +148,8 @@ async def expo_end(message: Message, state: FSMContext):
     if dt is None:
         return await message.answer(t("uz", "bad_date"))
     data = await state.get_data()
-    await state.update_data(end_at=dt.isoformat())
+    await state.update_data(end_at=tash_to_utc(dt).isoformat(),
+                            end_disp=dt.strftime("%d.%m.%Y %H:%M"))
     prizes = "\n".join(f"{medal(p['place'])} {p['prize']}" for p in data["prizes"])
     b = InlineKeyboardBuilder()
     b.button(text=t("uz", "btn_save"), callback_data=f"{CB.ADMIN}:newsave")
@@ -152,8 +159,7 @@ async def expo_end(message: Message, state: FSMContext):
     await message.answer(
         t("uz", "expo_summary", title=data["title"], desc=data["desc"],
           rules=data["rules"], prizes=prizes,
-          start=data["start_at"][:16].replace("T", " "),
-          end=data["end_at"][:16].replace("T", " ")),
+          start=data["start_disp"], end=data["end_disp"]),
         reply_markup=b.as_markup())
 
 

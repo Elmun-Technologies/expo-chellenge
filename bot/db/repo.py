@@ -7,7 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..constants import ExpoStatus, Role, SubStatus, ReportStatus
 from .models import (Admin, AuditLog, Broadcast, BroadcastLog, Expo,
-                     Participant, Submission, User, ViewReport, utcnow)
+                     Participant, RandomDraw, Submission, User, ViewReport,
+                     utcnow)
 
 
 # ---------------- users ----------------
@@ -240,10 +241,51 @@ async def total_views(session: AsyncSession, expo_id: int) -> int:
 # ---------------- broadcast ----------------
 
 async def create_broadcast(session: AsyncSession, admin_tg_id: int, target_type: str,
-                           payload: dict, expo_id=None, single_user_id=None, total=0) -> Broadcast:
+                           payload: dict, expo_id=None, single_user_id=None, total=0,
+                           scheduled_at=None) -> Broadcast:
     bc = Broadcast(admin_tg_id=admin_tg_id, target_type=target_type, payload=payload,
-                   expo_id=expo_id, single_user_id=single_user_id, total=total)
+                   expo_id=expo_id, single_user_id=single_user_id, total=total,
+                   scheduled_at=scheduled_at,
+                   status="scheduled" if scheduled_at else "sending")
     session.add(bc)
+    await session.flush()
+    return bc
+
+
+async def due_scheduled_broadcasts(session: AsyncSession, now: datetime) -> list[Broadcast]:
+    return list((await session.execute(
+        select(Broadcast).where(Broadcast.status == "scheduled",
+                                Broadcast.scheduled_at <= now)
+        .order_by(Broadcast.id))).scalars())
+
+
+async def list_scheduled_broadcasts(session: AsyncSession) -> list[Broadcast]:
+    return list((await session.execute(
+        select(Broadcast).where(Broadcast.status == "scheduled")
+        .order_by(Broadcast.scheduled_at))).scalars())
+
+
+async def count_scheduled_broadcasts(session: AsyncSession) -> int:
+    return (await session.execute(
+        select(func.count(Broadcast.id))
+        .where(Broadcast.status == "scheduled"))).scalar_one()
+
+
+async def cancel_broadcast(session: AsyncSession, broadcast_id: int) -> bool:
+    bc = await session.get(Broadcast, broadcast_id)
+    if bc is None or bc.status != "scheduled":
+        return False
+    bc.status = "cancelled"
+    await session.flush()
+    return True
+
+
+async def claim_broadcast(session: AsyncSession, broadcast_id: int) -> Broadcast | None:
+    """Scheduler uchun: juft yuborilishni oldini olish."""
+    bc = await session.get(Broadcast, broadcast_id)
+    if bc is None or bc.status != "scheduled":
+        return None
+    bc.status = "sending"
     await session.flush()
     return bc
 
@@ -263,6 +305,28 @@ async def finish_broadcast(session: AsyncSession, broadcast_id: int,
     bc.blocked_count = blocked
     bc.finished_at = utcnow()
     await session.flush()
+
+
+# ---------------- random draw ----------------
+
+async def eligible_random_candidates(session: AsyncSession, expo: Expo):
+    """Tasdiqlangan ishtirokchilar. Yakunlangan expo'da asosiy g'oliblar chiqarib tashlanadi."""
+    rows = await top_submissions(session, expo.id)
+    if expo.status in (ExpoStatus.FINISHED, ExpoStatus.CLOSED):
+        skip = max((p["place"] for p in (expo.prizes or [])), default=0)
+        rows = rows[skip:]
+    return rows
+
+
+async def save_draw(session: AsyncSession, expo_id: int, prize: str,
+                    winners_count: int, candidates_hash: str,
+                    winner_user_ids: list[int], created_by: int) -> RandomDraw:
+    d = RandomDraw(expo_id=expo_id, prize=prize, winners_count=winners_count,
+                   candidates_hash=candidates_hash, winner_user_ids=winner_user_ids,
+                   created_by=created_by)
+    session.add(d)
+    await session.flush()
+    return d
 
 
 # ---------------- audit ----------------

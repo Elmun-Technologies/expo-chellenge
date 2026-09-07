@@ -115,7 +115,8 @@ class Broadcast(Base):
     expo_id: Mapped[int | None] = mapped_column(ForeignKey("expos.id"), nullable=True)
     single_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     payload: Mapped[dict] = mapped_column(SQLiteJSON, default=dict)  # {text, photo_file_id}
-    status: Mapped[str] = mapped_column(String(20), default="sending")
+    status: Mapped[str] = mapped_column(String(20), default="sending")  # sending/scheduled/done/cancelled
+    scheduled_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     total: Mapped[int] = mapped_column(Integer, default=0)
     sent_count: Mapped[int] = mapped_column(Integer, default=0)
     failed_count: Mapped[int] = mapped_column(Integer, default=0)
@@ -132,6 +133,20 @@ class BroadcastLog(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     status: Mapped[str] = mapped_column(String(20))  # sent/failed
     error: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class RandomDraw(Base):
+    """🎲 Random sovg'a o'yinlari — to'liq shaffoflik bilan saqlanadi."""
+    __tablename__ = "random_draws"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    expo_id: Mapped[int] = mapped_column(ForeignKey("expos.id"), index=True)
+    prize: Mapped[str] = mapped_column(String(300))
+    winners_count: Mapped[int] = mapped_column(Integer)
+    candidates_hash: Mapped[str] = mapped_column(String(20))  # sha256 qisqa — ro'yxat o'zgarmaganining isboti
+    winner_user_ids: Mapped[list] = mapped_column(SQLiteJSON, default=list)
+    created_by: Mapped[int] = mapped_column(BigInteger)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 

@@ -64,6 +64,19 @@ fly deploy                               # migratsiya release_command da yuritil
 5. `📊 Mening o'rning` — kimdan oldin/orqada ekanini ko'radi
 6. Yakunda TOP-10 → final tekshiruv (`🏁`) → g'oliblar e'loni
 
+## ✨ Qo'shimcha imkoniyatlar
+
+- **🎲 Random sovg'a** (admin panel): asosiy g'oliblardan tashqari ishtirokchilar
+  orasida CSPRNG (`secrets.SystemRandom`) bilan tanlov. Nomzodlar ro'yxati
+  **sha256 xesh** bilan qayd etiladi (`audit_log`) — e'lon bilan birga tekshiruv
+  kodi chiqadi, ".random adolatli"ning isboti.
+- **⏰ Jadval rassilkasi**: rassilkani kelajak vaqtga (Toshkent) qo'yish —
+  ichki scheduler har 30 s da tekshirib o'zi yuboradi; paneldan bekor qilish
+  ham mumkin.
+- **👥 Guruhda tezkor statistika**: review guruhida `/stats` va `/top`.
+- **🕐 Vaqt zonasi**: admin kiritadigan barcha sanalar **Toshkent (UTC+5)** da
+  qabul qilinadi, bazada UTC saqlanadi.
+
 ## 🛠 Admin
 
 | Buyruq | Kim | Nima qiladi |
