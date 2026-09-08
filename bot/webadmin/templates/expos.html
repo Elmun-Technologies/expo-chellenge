@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Expo'lar — Admin{% endblock %}
+{% block content %}
+<h1>Expo'lar</h1>
+<p class="sub">Challenge'larni yaratish va boshqarish</p>
+
+{% if flash %}<div class="flash {{ flash_type }}">{{ flash }}</div>{% endif %}
+
+<div class="panel">
+  <strong style="display:block;margin-bottom:14px">➕ Yangi Expo</strong>
+  <form method="post" action="/admin/expos/new">
+    <div class="field"><label>Sarlavha</label><input type="text" name="title" required></div>
+    <div class="field"><label>Tavsif</label><textarea name="description"></textarea></div>
+    <div class="field"><label>Qoidalar</label><textarea name="rules_text"></textarea></div>
+    <div class="field"><label>Sovg'alar (har qatorda bittadan: "1-o'rin: iPhone 16")</label>
+      <textarea name="prizes_raw" placeholder="1-o'rin: iPhone 16&#10;2-o'rin: AirPods"></textarea></div>
+    <div class="row">
+      <div class="field" style="flex:1"><label>Boshlanish (Toshkent)</label>
+        <input type="datetime-local" name="start_at" required></div>
+      <div class="field" style="flex:1"><label>Tugash (Toshkent)</label>
+        <input type="datetime-local" name="end_at" required></div>
+    </div>
+    <button type="submit" class="btn primary">Yaratish</button>
+  </form>
+</div>
+
+<div class="panel">
+  <strong style="display:block;margin-bottom:14px">Ro'yxat</strong>
+  {% if expos %}
+  <table>
+    <tr><th>ID</th><th>Sarlavha</th><th>Holat</th><th>Boshlanish</th><th>Tugash</th><th></th></tr>
+    {% for e in expos %}
+    <tr>
+      <td>{{ e.id }}</td>
+      <td>{{ e.title }}</td>
+      <td><span class="badge {{ e.status }}">{{ e.status }}</span></td>
+      <td class="muted">{{ e.start_at.strftime("%d.%m.%Y %H:%M") }}</td>
+      <td class="muted">{{ e.end_at.strftime("%d.%m.%Y %H:%M") }}</td>
+      <td>
+        {% if e.status == "draft" %}
+        <form method="post" action="/admin/expos/{{ e.id }}/activate" style="display:inline">
+          <button class="btn sm primary">Faollashtirish</button>
+        </form>
+        {% elif e.status == "active" %}
+        <form method="post" action="/admin/expos/{{ e.id }}/finish" style="display:inline"
+              onsubmit="return confirm('Expo yakunlansinmi?')">
+          <button class="btn sm danger">Yakunlash</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <div class="empty">Hali Expo yaratilmagan</div>
+  {% endif %}
+</div>
+{% endblock %}

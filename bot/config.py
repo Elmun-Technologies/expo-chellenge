@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     review_group_id: int | None = None
     announce_chat_id: int | None = None  # g'oliblar e'lon qilinadigan kanal/guruh
 
+    # Web-admin panel (bot/webadmin) — bo'sh bo'lsa panel butunlay o'chirilgan bo'ladi
+    admin_password: str = ""
+
     # Texnik
     web_port: int = 8080
     default_lang: str = "uz"

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Expo Challenge Admin{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+<p class="sub">{% if expo %}{{ expo.title }} <span class="badge {{ expo.status }}">{{ expo.status }}</span>{% else %}Faol expo yo'q{% endif %}</p>
+
+{% if expo %}
+<div class="cards">
+  <div class="card"><div class="num">{{ stats.users }}</div><div class="lbl">Jami foydalanuvchi</div></div>
+  <div class="card"><div class="num">{{ stats.participants }}</div><div class="lbl">Ishtirokchi</div></div>
+  <div class="card"><div class="num">{{ stats.pending }}</div><div class="lbl">Kutilmoqda</div></div>
+  <div class="card"><div class="num">{{ stats.approved }}</div><div class="lbl">Tasdiqlangan</div></div>
+  <div class="card"><div class="num">{{ stats.rejected }}</div><div class="lbl">Rad etilgan</div></div>
+  <div class="card"><div class="num">{{ stats.views }}</div><div class="lbl">Jami ko'ruv</div></div>
+</div>
+
+<div class="panel">
+  <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:14px">
+    <strong>🏆 TOP-5</strong>
+    <a href="/admin/leaderboard" class="btn sm">To'liq reyting →</a>
+  </div>
+  {% if top5 %}
+  <table>
+    <tr><th>#</th><th>Ism</th><th>Instagram</th><th>Ko'ruv</th></tr>
+    {% for sub, p, u in top5 %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ u.full_name or '—' }}</td>
+      <td>@{{ u.instagram or '—' }}</td>
+      <td>{{ "{:,}".format(sub.current_views).replace(",", " ") }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <div class="empty">Hali tasdiqlangan topshiriq yo'q</div>
+  {% endif %}
+</div>
+
+{% if stats.pending > 0 %}
+<a href="/admin/submissions?status=pending" class="btn primary">🔔 {{ stats.pending }} ta topshiriqni ko'rib chiqish</a>
+{% endif %}
+
+{% else %}
+<div class="panel empty">
+  Faol Expo yo'q. <a href="/admin/expos" style="color:var(--accent)">Yangi Expo yarating →</a>
+</div>
+{% endif %}
+{% endblock %}

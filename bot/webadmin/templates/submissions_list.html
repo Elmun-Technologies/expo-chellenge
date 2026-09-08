@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Topshiriqlar — Admin{% endblock %}
+{% block content %}
+<h1>Topshiriqlar</h1>
+<p class="sub">{% if expo %}{{ expo.title }}{% else %}Faol expo yo'q{% endif %}</p>
+
+<form method="get" action="/admin/submissions" class="row" style="margin-bottom:14px">
+  <input type="hidden" name="status" value="{{ status or '' }}">
+  <input type="search" name="q" value="{{ q or '' }}" placeholder="Ism, Instagram, telefon yoki havola bo'yicha qidirish..." style="max-width:340px">
+  <button class="btn sm" type="submit">Qidirish</button>
+</form>
+
+<div class="tabs">
+  <a href="/admin/submissions?q={{ q or '' }}" class="{{ 'active' if not status }}">Hammasi</a>
+  <a href="/admin/submissions?status=pending&q={{ q or '' }}" class="{{ 'active' if status=='pending' }}">Kutilmoqda</a>
+  <a href="/admin/submissions?status=approved&q={{ q or '' }}" class="{{ 'active' if status=='approved' }}">Tasdiqlangan</a>
+  <a href="/admin/submissions?status=rejected&q={{ q or '' }}" class="{{ 'active' if status=='rejected' }}">Rad etilgan</a>
+  <a href="/admin/submissions?status=changes_requested&q={{ q or '' }}" class="{{ 'active' if status=='changes_requested' }}">Tuzatish kerak</a>
+</div>
+
+<div class="panel">
+  {% if rows %}
+  <table>
+    <tr><th>Ism</th><th>Instagram</th><th>Telefon</th><th>Ko'ruv</th><th>Holat</th><th>Yuborilgan</th><th></th></tr>
+    {% for sub, p, u in rows %}
+    <tr>
+      <td>{{ u.full_name or '—' }}</td>
+      <td>@{{ u.instagram or '—' }}</td>
+      <td>{{ u.phone or '—' }}</td>
+      <td>{{ "{:,}".format(sub.current_views).replace(",", " ") }}</td>
+      <td><span class="badge {{ sub.status }}">{{ sub.status }}</span></td>
+      <td class="muted">{{ sub.submitted_at.strftime("%d.%m %H:%M") }}</td>
+      <td><a href="/admin/submissions/{{ sub.id }}" class="btn sm">Ochish</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  <div class="pager">
+    {% if page > 1 %}<a class="btn sm" href="?status={{ status or '' }}&q={{ q or '' }}&page={{ page-1 }}">← Oldingi</a>{% endif %}
+    <span class="muted" style="align-self:center">{{ page }} / {{ pages }}</span>
+    {% if page < pages %}<a class="btn sm" href="?status={{ status or '' }}&q={{ q or '' }}&page={{ page+1 }}">Keyingi →</a>{% endif %}
+  </div>
+  {% else %}
+  <div class="empty">Hech narsa topilmadi</div>
+  {% endif %}
+</div>
+{% endblock %}

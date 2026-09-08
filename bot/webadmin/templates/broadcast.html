@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Rassilka — Admin{% endblock %}
+{% block content %}
+<h1>📣 Rassilka</h1>
+<p class="sub">Ishtirokchilarga Telegram orqali xabar yuborish</p>
+
+{% if flash %}<div class="flash {{ flash_type }}">{{ flash }}</div>{% endif %}
+
+<div class="panel">
+  <form method="post" action="/admin/broadcast/send">
+    <div class="field">
+      <label>Auditoriya</label>
+      <select name="target">
+        <option value="all">Hammaga (bot bilan tanish bo'lganlar) — {{ counts.all }}</option>
+        <option value="participants">Faol expo ishtirokchilari — {{ counts.participants }}</option>
+        <option value="approved">Videosi tasdiqlanganlar — {{ counts.approved }}</option>
+        <option value="pending">Arizasi kutilayotganlar — {{ counts.pending }}</option>
+        <option value="top10">TOP-10 — {{ counts.top10 }}</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Xabar matni</label>
+      <textarea name="text" required placeholder="Xabar matnini yozing..."></textarea>
+    </div>
+    <button type="submit" class="btn primary" onclick="return confirm('Xabar yuborilsinmi? Bu qaytarib bo\'lmaydi.')">
+      🚀 Hozir yuborish
+    </button>
+  </form>
+</div>
+{% endblock %}

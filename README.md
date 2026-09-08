@@ -77,6 +77,24 @@ fly deploy                               # migratsiya release_command da yuritil
 - **🕐 Vaqt zonasi**: admin kiritadigan barcha sanalar **Toshkent (UTC+5)** da
   qabul qilinadi, bazada UTC saqlanadi.
 
+## 🖥 Web-admin panel
+
+Telegram'dagi `/admin` panelidan tashqari, brauzerda ishlaydigan to'liq boshqaruv paneli ham bor:
+
+```
+https://<app-nomi>.fly.dev/admin
+```
+
+Kirish uchun `ADMIN_PASSWORD` secret/env o'rnatilishi shart (bo'sh bo'lsa panel butunlay o'chirilgan
+bo'ladi — `503`). Fly'da:
+
+```bash
+fly secrets set ADMIN_PASSWORD='kuchli-parol'
+```
+
+Panel imkoniyatlari: dashboard statistikasi, Expo yaratish/faollashtirish/yakunlash, topshiriqlarni
+qidirish/filtrlash va tasdiqlash/rad etish (skrinshot bilan), reyting, rassilka, CSV eksport.
+
 ## 🛠 Admin
 
 | Buyruq | Kim | Nima qiladi |

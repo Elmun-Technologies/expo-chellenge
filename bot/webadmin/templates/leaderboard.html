@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Reyting — Admin{% endblock %}
+{% block content %}
+<h1>🏆 Reyting</h1>
+<p class="sub">{% if expo %}{{ expo.title }}{% else %}Faol expo yo'q{% endif %}</p>
+
+<div class="panel">
+  {% if rows %}
+  <table>
+    <tr><th>#</th><th>Ism</th><th>Instagram</th><th>Telefon</th><th>Ko'ruv</th><th>Yuborilgan</th></tr>
+    {% for sub, p, u in rows %}
+    <tr>
+      <td>{{ loop.index }}{% if loop.index <= 3 %} {{ ["🥇","🥈","🥉"][loop.index-1] }}{% endif %}</td>
+      <td>{{ u.full_name or '—' }}</td>
+      <td>@{{ u.instagram or '—' }}</td>
+      <td>{{ u.phone or '—' }}</td>
+      <td>{{ "{:,}".format(sub.current_views).replace(",", " ") }}</td>
+      <td class="muted">{{ sub.submitted_at.strftime("%d.%m.%Y") }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <div class="empty">Hali tasdiqlangan topshiriq yo'q</div>
+  {% endif %}
+</div>
+{% endblock %}
