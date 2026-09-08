@@ -231,6 +231,36 @@ async def count_submissions(session: AsyncSession, expo_id: int, status: str | N
     return (await session.execute(q)).scalar_one()
 
 
+def _submissions_search_query(expo_id: int, status: str | None, q: str | None):
+    query = (select(Submission, Participant, User)
+             .join(Participant, Submission.participant_id == Participant.id)
+             .join(User, Participant.user_id == User.id)
+             .where(Submission.expo_id == expo_id))
+    if status:
+        query = query.where(Submission.status == status)
+    if q:
+        like = f"%{q.strip()}%"
+        query = query.where(
+            User.full_name.ilike(like) | User.instagram.ilike(like) |
+            User.phone.ilike(like) | Submission.video_url.ilike(like))
+    return query
+
+
+async def search_submissions(session: AsyncSession, expo_id: int, status: str | None = None,
+                              q: str | None = None, limit: int = 50,
+                              offset: int = 0) -> list[tuple[Submission, Participant, User]]:
+    query = (_submissions_search_query(expo_id, status, q)
+             .order_by(Submission.submitted_at.desc()).limit(limit).offset(offset))
+    return list((await session.execute(query)).all())
+
+
+async def count_search_submissions(session: AsyncSession, expo_id: int, status: str | None = None,
+                                    q: str | None = None) -> int:
+    query = _submissions_search_query(expo_id, status, q).with_only_columns(
+        func.count(Submission.id))
+    return (await session.execute(query)).scalar_one()
+
+
 async def total_views(session: AsyncSession, expo_id: int) -> int:
     return (await session.execute(
         select(func.coalesce(func.sum(Submission.current_views), 0))

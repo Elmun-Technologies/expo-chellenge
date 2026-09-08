@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Topshiriq #{{ sub.id }} — Admin{% endblock %}
+{% block content %}
+<p class="sub"><a href="/admin/submissions" style="color:var(--accent)">← Topshiriqlar</a></p>
+<h1>{{ user.full_name or '—' }} <span class="badge {{ sub.status }}">{{ sub.status }}</span></h1>
+<p class="sub">Instagram: @{{ user.instagram or '—' }} · Tel: {{ user.phone or '—' }} · Til: {{ user.language }}</p>
+
+{% if flash %}<div class="flash {{ flash_type }}">{{ flash }}</div>{% endif %}
+
+<div class="panel">
+  <div class="field"><label>Video havolasi</label>
+    <a href="{{ sub.video_url }}" target="_blank" style="color:var(--accent)">{{ sub.video_url }}</a></div>
+  <div class="row">
+    <div class="field"><label>Joriy ko'ruv</label><div>{{ "{:,}".format(sub.current_views).replace(",", " ") }}</div></div>
+    <div class="field"><label>Yuborilgan</label><div>{{ sub.submitted_at.strftime("%d.%m.%Y %H:%M") }}</div></div>
+  </div>
+  {% if sub.reject_reason %}
+  <div class="field"><label>Rad etish sababi</label><div>{{ sub.reject_reason }}</div></div>
+  {% endif %}
+</div>
+
+{% if report %}
+<div class="panel">
+  <strong style="display:block;margin-bottom:12px">🔍 Ko'rib chiqilishi kerak — yangi skrinshot</strong>
+  <div class="row" style="align-items:flex-start">
+    <img class="shot" src="/admin/file/{{ report.screenshot_file_id }}" alt="skrinshot">
+    <div>
+      <div class="field"><label>E'lon qilingan ko'ruv soni</label><div style="font-size:22px;font-weight:700">
+        {{ "{:,}".format(report.views_count).replace(",", " ") }}</div></div>
+      {% if report.flags %}
+      <div class="field"><label>⚠️ Flag'lar</label>
+        {% for f in report.flags %}<span class="badge rejected">{{ f }}</span>{% endfor %}</div>
+      {% endif %}
+      <div class="row" style="margin-top:16px">
+        <form method="post" action="/admin/submissions/{{ sub.id }}/approve">
+          <button class="btn primary">✅ Tasdiqlash</button>
+        </form>
+        <form method="post" action="/admin/submissions/{{ sub.id }}/reject" style="display:flex;gap:8px">
+          <input type="text" name="reason" placeholder="Rad etish sababi" required style="width:220px">
+          <button class="btn danger">❌ Rad etish</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="panel">
+  <strong style="display:block;margin-bottom:12px">📈 Ko'ruv tarixi (tasdiqlangan)</strong>
+  {% if history %}
+  <table>
+    <tr><th>Sana</th><th>Ko'ruv</th></tr>
+    {% for r in history %}
+    <tr><td class="muted">{{ r.created_at.strftime("%d.%m.%Y %H:%M") }}</td>
+        <td>{{ "{:,}".format(r.views_count).replace(",", " ") }}</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <div class="empty">Hali tasdiqlangan ko'ruv yo'q</div>
+  {% endif %}
+</div>
+{% endblock %}

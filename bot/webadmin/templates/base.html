@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Expo Challenge — Admin{% endblock %}</title>
+<style>
+  :root{
+    --bg:#0b0d12; --panel:#12151c; --panel-2:#171b24; --border:#232836;
+    --text:#e8eaf0; --muted:#8b93a7; --accent:#6d5efc; --accent-2:#8f7bff;
+    --green:#22c55e; --red:#ef4444; --amber:#f59e0b; --radius:12px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;}
+  a{color:inherit;text-decoration:none}
+  .layout{display:flex;min-height:100vh}
+  nav.side{width:220px;flex:none;background:var(--panel);border-right:1px solid var(--border);
+           padding:20px 14px;position:sticky;top:0;height:100vh}
+  nav.side .brand{font-weight:700;font-size:15px;margin:4px 8px 22px;
+                   display:flex;align-items:center;gap:8px}
+  nav.side .brand span.dot{width:8px;height:8px;border-radius:50%;background:var(--accent);
+                            box-shadow:0 0 12px var(--accent)}
+  nav.side a{display:block;padding:9px 12px;border-radius:8px;color:var(--muted);
+             font-weight:500;margin-bottom:2px;transition:.15s}
+  nav.side a:hover{background:var(--panel-2);color:var(--text)}
+  nav.side a.active{background:var(--accent);color:#fff}
+  nav.side .logout{margin-top:24px;border-top:1px solid var(--border);padding-top:14px}
+  main{flex:1;padding:28px 32px;max-width:1200px}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 24px;font-size:13px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:26px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px}
+  .card .num{font-size:26px;font-weight:700}
+  .card .lbl{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+         padding:18px 20px;margin-bottom:20px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{text-align:left;color:var(--muted);font-weight:600;font-size:12px;
+     text-transform:uppercase;letter-spacing:.03em;padding:8px 10px;border-bottom:1px solid var(--border)}
+  td{padding:10px;border-bottom:1px solid var(--border);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:var(--panel-2)}
+  .badge{display:inline-block;padding:3px 9px;border-radius:99px;font-size:11.5px;font-weight:600}
+  .badge.pending{background:#f59e0b26;color:var(--amber)}
+  .badge.approved{background:#22c55e26;color:var(--green)}
+  .badge.rejected{background:#ef444426;color:var(--red)}
+  .badge.changes_requested{background:#6d5efc26;color:var(--accent-2)}
+  .badge.draft{background:#8b93a726;color:var(--muted)}
+  .badge.active{background:#22c55e26;color:var(--green)}
+  .badge.finished{background:#f59e0b26;color:var(--amber)}
+  .badge.closed{background:#8b93a726;color:var(--muted)}
+  .btn{display:inline-block;padding:8px 16px;border-radius:8px;border:1px solid var(--border);
+       background:var(--panel-2);color:var(--text);cursor:pointer;font-size:13px;font-weight:600}
+  .btn:hover{border-color:var(--accent)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{background:var(--accent-2)}
+  .btn.danger{background:#ef444422;border-color:#ef444455;color:#fca5a5}
+  .btn.danger:hover{background:#ef444444}
+  .btn.sm{padding:5px 11px;font-size:12px}
+  input[type=text],input[type=password],input[type=search],input[type=datetime-local],
+  textarea,select{
+    background:var(--panel-2);border:1px solid var(--border);border-radius:8px;
+    color:var(--text);padding:9px 11px;font-size:13.5px;font-family:inherit;width:100%}
+  textarea{min-height:110px;resize:vertical}
+  label{display:block;font-size:12.5px;color:var(--muted);margin:0 0 5px;font-weight:600}
+  .field{margin-bottom:14px}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .tabs{display:flex;gap:6px;margin-bottom:16px}
+  .tabs a{padding:7px 14px;border-radius:8px;background:var(--panel-2);color:var(--muted);font-size:13px;font-weight:600}
+  .tabs a.active{background:var(--accent);color:#fff}
+  .muted{color:var(--muted)}
+  .flash{padding:10px 14px;border-radius:8px;margin-bottom:16px;font-size:13.5px}
+  .flash.ok{background:#22c55e1a;color:var(--green);border:1px solid #22c55e40}
+  .flash.err{background:#ef44441a;color:#fca5a5;border:1px solid #ef444440}
+  img.shot{max-width:280px;border-radius:8px;border:1px solid var(--border)}
+  .empty{color:var(--muted);padding:30px 0;text-align:center}
+  .pager{display:flex;gap:8px;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="side">
+    <div class="brand"><span class="dot"></span> Expo Challenge</div>
+    <a href="/admin/dashboard" class="{{ 'active' if active=='dashboard' }}">📊 Dashboard</a>
+    <a href="/admin/expos" class="{{ 'active' if active=='expos' }}">🎪 Expo'lar</a>
+    <a href="/admin/submissions" class="{{ 'active' if active=='submissions' }}">🎥 Topshiriqlar</a>
+    <a href="/admin/leaderboard" class="{{ 'active' if active=='leaderboard' }}">🏆 Reyting</a>
+    <a href="/admin/broadcast" class="{{ 'active' if active=='broadcast' }}">📣 Rassilka</a>
+    <a href="/admin/export/users">⬇️ Eksport (CSV)</a>
+    <div class="logout">
+      <form method="post" action="/admin/logout"><button class="btn sm" style="width:100%">Chiqish</button></form>
+    </div>
+  </nav>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</div>
+</body>
+</html>

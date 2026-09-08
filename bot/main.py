@@ -37,8 +37,8 @@ async def on_startup(bot: Bot):
     log.info("Bot ishga tushdi: @%s", me.username)
 
 
-async def run_health_server():
-    app = make_app()
+async def run_health_server(bot: Bot):
+    app = make_app(bot)
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", settings.web_port)
@@ -73,7 +73,7 @@ async def main():
 
     dp.include_router(root_router)
 
-    await run_health_server()
+    await run_health_server(bot)
     await on_startup(bot)
 
     # jadvaldagi rassilkalar yonish-fon jarayoni
