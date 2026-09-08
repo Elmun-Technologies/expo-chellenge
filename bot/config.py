@@ -1,6 +1,7 @@
 """Bot konfiguratsiyasi — barcha sozlamalar env o'zgaruvchilardan o'qiladi."""
 from functools import lru_cache
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,7 +15,10 @@ class Settings(BaseSettings):
     database_url: str = "sqlite+aiosqlite:///./data/app.db"
 
     # Rollar va guruhlar
-    superadmin_ids_raw: str = ""   # "111,222"
+    # maydon nomi "_raw" bilan tugagani uchun pydantic-settings uni odatiy
+    # holda SUPERADMIN_IDS_RAW env o'zgaruvchisidan o'qiydi — README/.env.example
+    # esa SUPERADMIN_IDS deb hujjatlashtirgan, shuning uchun aniq alias kerak.
+    superadmin_ids_raw: str = Field(default="", validation_alias="SUPERADMIN_IDS")   # "111,222"
     review_group_id: int | None = None
     announce_chat_id: int | None = None  # g'oliblar e'lon qilinadigan kanal/guruh
 
