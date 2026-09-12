@@ -30,8 +30,9 @@ python -m bot.main                  # alembic migratsialari avtomatik yuritiladi
    admin - Admin panel
    ```
 
-### Review guruhini sozlash
-1. Guruh yarating, botni unga qo'shing (xabar yuborish ruxsati bilan).
+### Review (hay'at) guruhini sozlash
+1. Guruh yarating va **botni guruhga admin qilib qo'shing** (xabar yuborish
+   ruxsati bilan) — a'zolikni tekshira olishi uchun admin bo'lishi kerak.
 2. Guruh **supergroup** bo'lishi kerak. ID ni olish:
    guruhga istalgan xabar yozing → `https://t.me/<bot>` orqali emas, balki
    `@userinfobot` yoki `https://api.telegram.org/bot<TOKEN>/getUpdates` dan
@@ -39,7 +40,11 @@ python -m bot.main                  # alembic migratsialari avtomatik yuritiladi
 3. `.env` ga `REVIEW_GROUP_ID=-100xxxxxxxxxx` yozing.
 4. Superadmin: o'zingizning TG ID ngizni `SUPERADMIN_IDS` ga yozing
    (ID ni @userinfobot'dan bilib oling).
-5. Moderator qo'shish: `/addadmin <tg_id> moderator`
+5. **Hay'at a'zolarini alohida ro'yxatga olish shart emas** — guruhga kim
+   a'zo bo'lsa, o'shaning barchasi arizalarni ✅ tasdiqlashi / ❌ rad etishi
+   mumkin. Guruhdan chiqqan yoki chiqarib yuborilgan odam bu huquqni
+   avtomatik yo'qotadi. (Bazaviy moderator/admin rolini `/addadmin
+   <tg_id> moderator` bilan guruhdan tashqarida ham berish mumkin.)
 
 ## 📦 Fly.io deploy
 

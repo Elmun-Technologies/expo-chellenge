@@ -7,11 +7,12 @@ from aiogram.types import CallbackQuery, Message
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..constants import CB, ReportStatus, Role, SubStatus
+from ..constants import CB, ReportStatus, SubStatus
 from ..db import repo
 from ..db.models import Participant, Submission, User, utcnow
 from ..i18n import t
 from ..keyboards import kb_reasons, kb_resubmit
+from ..services.access import can_review
 from ..services.utils import fmt_int
 
 log = logging.getLogger(__name__)
@@ -64,7 +65,8 @@ def _edit_mark(message: Message, key: str, mod: str, reason: str | None = None):
 
 @router.callback_query(F.data.startswith(f"{CB.REVIEW}:"))
 async def review_action(cb: CallbackQuery, session, role):
-    if role not in Role.REVIEWERS:
+    # Hay'at guruhining har bir a'zosi tasdiqlashi/rad etishi mumkin
+    if not await can_review(cb.bot, role, cb.message.chat.id, cb.from_user.id):
         return await cb.answer(t("uz", "no_rights"), show_alert=True)
 
     _, sub_id_s, action = cb.data.split(":")
@@ -102,7 +104,8 @@ async def review_action(cb: CallbackQuery, session, role):
 
 @router.callback_query(F.data.startswith(f"{CB.REASON}:"))
 async def review_reason(cb: CallbackQuery, session, role):
-    if role not in Role.REVIEWERS:
+    # Hay'at guruhining har bir a'zosi tasdiqlashi/rad etishi mumkin
+    if not await can_review(cb.bot, role, cb.message.chat.id, cb.from_user.id):
         return await cb.answer(t("uz", "no_rights"), show_alert=True)
 
     parts = cb.data.split(":")
@@ -132,9 +135,16 @@ async def review_reason(cb: CallbackQuery, session, role):
 
 @router.message(F.reply_to_message)
 async def custom_reason_reply(message: Message, session, role):
-    if role not in Role.REVIEWERS or not message.text:
+    if not message.text:
         return
     key = (message.chat.id, message.reply_to_message.message_id)
+    # Avval shu reply haqiqatan "boshqa sabab" so'roviga tegishlimi —
+    # bo'lmasa Telegram API'ni behusa chaqirmaymiz.
+    if key not in pending_custom_reason:
+        return
+    # Hay'at guruhining har bir a'zosi sabab yozib rad etishi mumkin
+    if not await can_review(message.bot, role, message.chat.id, message.from_user.id):
+        return
     item = pending_custom_reason.pop(key, None)
     if item is None:
         return

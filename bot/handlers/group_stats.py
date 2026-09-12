@@ -3,9 +3,9 @@ from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.types import Message
 
-from ..constants import Role
 from ..db import repo
 from ..i18n import t
+from ..services.access import can_review
 from ..services.utils import fmt_int
 from .stats import _build_stats_text
 
@@ -15,7 +15,7 @@ router.message.filter(F.chat.type.in_({"group", "supergroup"}))
 
 @router.message(Command("stats"))
 async def group_stats(message: Message, session, role):
-    if role not in Role.REVIEWERS:
+    if not await can_review(message.bot, role, message.chat.id, message.from_user.id):
         return
     expo = await repo.get_active_expo(session)
     if expo is None:
@@ -26,7 +26,7 @@ async def group_stats(message: Message, session, role):
 
 @router.message(Command("top"))
 async def group_top(message: Message, session, role):
-    if role not in Role.REVIEWERS:
+    if not await can_review(message.bot, role, message.chat.id, message.from_user.id):
         return
     expo = await repo.get_active_expo(session)
     if expo is None:

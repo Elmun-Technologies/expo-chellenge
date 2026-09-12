@@ -27,13 +27,20 @@
 | Rol | Kim | Imkoniyatlar |
 |---|---|---|
 | Foydalanuvchi | Ishtirokchi | Ro'yxatdan o'tish, video yuborish, prosmotr yangilash, reyting ko'rish |
-| Moderator | Maxsus jamoa (review guruhida) | Video+havolani tasdiqlash / rad etish, sabab yozish |
+| Moderator | Maxsus jamoa — **hay'at (review) guruhining har bir a'zosi** | Video+havolani tasdiqlash / rad etish, sabab yozish |
 | Admin | Tashkilotchi jamoa | Expo yaratish, rassilka, statistika, challenge yakunlash |
 | Superadmin | Texnik mas'ul | Adminlarni boshqarish, g'olibni e'lon qilish, tizim sozlamalari |
 
 **Muhim:** Moderatorlar faqat guruhda ishlaydi (aloqa botda alohida
 admin-panel ochish shart emas), Adminlar esa botdagi yashirin admin
 buyruqlari orqali ishlaydi.
+
+**Hay'at guruhi — avtomatik huquq:** review guruhiga kim a'zo bo'lsa,
+o'shaning barchasi arizalarni tasdiqlashi/rad etishi mumkin — har bir
+kishini alohida `/addadmin` qilish shart emas. Bot har tekshiruvda
+Telegram'dan a'zolikni so'raydi (`getChatMember`, 60 sekundlik kesh
+bilan); guruhdan chiqqan/chiqarilgan odam huquqni darhol yo'qotadi.
+Bot guruhda admin bo'lishi kerak.
 
 ---
 
@@ -368,7 +375,7 @@ expo-chellenge/
 6. Bir ishtirokchida **bitta faol video** (prosmotrlar esa cheksiz
    yangilanadi) — adolat uchun.
 7. ✅ **Guruh ichida tezkor statistika** — review guruhida `/stats` va
-   `/top` buyruqlari (faqat admin/moderatorlarga).
+   `/top` buyruqlari (guruh a'zolari — hay'at — ham ishlatadi).
 8. ✅ **Vaqt zonasi** — hamma sanalar Toshkent (UTC+5) da kiritiladi va
    ko'rsatiladi, bazada UTC saqlanadi.
 
