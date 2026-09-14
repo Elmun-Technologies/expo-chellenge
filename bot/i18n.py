@@ -46,6 +46,12 @@ TEXTS: dict[str, dict[str, str]] = {
         "invalid_views": "❌ Son kiriting. Masalan: 12500",
         "ask_screen": "📸 Endi ko'ruvlar soni aniq ko'ringan <b>skrinshot</b>ni yuboring.\n\nSkrinshotda ko'rinib turishi shart:\n• ko'ruvlar soni\n• akkaunt nomingiz",
         "need_photo": "❌ Bu rasm emas. Skrinshotni rasm sifatida yuboring:",
+        "reading_screenshot": "🔍 Skrinshot tahlil qilinmoqda...",
+        "confirm_ocr_found": "🔍 Skrinshotdan aniqlangan ko'ruvlar: <b>{views}</b>",
+        "confirm_ocr_match": " ✅ kiritganingiz bilan mos",
+        "confirm_ocr_mismatch": "⚠️ Farq bor: kiritganingiz <b>{typed}</b>, skrinshotda esa <b>{ocr}</b>.",
+        "confirm_ocr_account": "👤 Skrinshotdagi akkaunt: @{handle}",
+        "confirm_ocr_account_mismatch": "⚠️ Skrinshotdagi akkaunt (@{detected}) sizning akkauntingizdan (@{registered}) farq qiladi!",
         "btn_keep_link": "⤵️ Oldingi havolani olish",
         "confirm_block": (
             "🔎 <b>Tekshirib chiqing:</b>\n\n"
@@ -89,6 +95,8 @@ TEXTS: dict[str, dict[str, str]] = {
         "rev_final": "🏁 <b>FINAL TEKSHIRUV</b> (sub #{sub_id})",
         "rev_flags": "\n⚠️ FLAGS: {flags}",
         "rev_body": "👤 {name} — {insta}\n📱 {phone}\n🔗 <a href=\"{url}\">Video havolasi</a>\n👁 Kiritilgan ko'ruvlar: <b>{views}</b>",
+        "rev_ocr": "\n🔍 Skrinshotdan o'qildi: <b>{ocr}</b> (ishonch: {conf}%)",
+        "rev_ocr_account": "\n👤 Skrinshotdagi akkaunt: @{handle}",
         "btn_approve": "✅ Tasdiqlash",
         "btn_reject": "❌ Rad etish",
         "btn_changes": "✏️ Qayta ishlash",
@@ -193,9 +201,12 @@ TEXTS: dict[str, dict[str, str]] = {
             "📥 Ariza yuborgan: <b>{submitted}</b>\n"
             "⏳ Kutilmoqda: <b>{pending}</b>\n"
             "✅ Tasdiqlangan: <b>{approved}</b>\n"
-            "❌ Rad etilgan: <b>{rejected}</b>\n\n"
+            "❌ Rad etilgan: <b>{rejected}</b>\n"
+            "✏️ Qayta ishlashda: <b>{changes}</b>\n\n"
             "👁 Jami ko'ruvlar: <b>{views}</b>\n"
-            "📈 O'rtacha: <b>{avg}</b>\n"
+            "📈 O'rtacha: <b>{avg}</b>\n\n"
+            "📸 Skrinshotlar: <b>{reports}</b> (✅ {reports_ok} · ❌ {reports_rej} · ⏳ {reports_pending})\n"
+            "🔍 OCR tekshirilgan: <b>{ocr_count}</b>\n"
             "🚫 Botni bloklagan: <b>{blocked}</b>"
         ),
         "stats_daily": "\n\n📅 Oxirgi 14 kun (ro'yxatdan o'tishlar):\n{daily}",
@@ -203,6 +214,14 @@ TEXTS: dict[str, dict[str, str]] = {
 
         # ---- eksport ----
         "export_done": "📤 CSV fayllar tayyor.",
+        "export_done_detail": (
+            "📤 <b>Batafsil CSV fayllar tayyor</b>\n\n"
+            "• <b>users.csv</b> — har bir ishtirokchi: ism, Instagram, telefon, qo'shilgan vaqti\n"
+            "• <b>submissions.csv</b> — har bir ariza: holat, havola, ko'ruvlar, vaqt, moderator\n"
+            "• <b>screenshots.csv</b> — har bir skrinshot: kiritilgan son, OCR soni, vaqt, moderator\n"
+            "• <b>leaderboard.csv</b> — tasdiqlanganlar reytingi\n\n"
+            "Barcha vaqtlar Toshkent (UTC+5) bo'yicha."
+        ),
 
         # ---- random sovg'a ----
         "abtn_random": "🎲 Random sovg'a",
@@ -281,6 +300,12 @@ TEXTS: dict[str, dict[str, str]] = {
         "invalid_views": "❌ Введите число. Например: 12500",
         "ask_screen": "📸 Теперь отправьте <b>скриншот</b>, где видно число просмотров.\n\nНа скриншоте обязательно должны быть:\n• число просмотров\n• имя вашего аккаунта",
         "need_photo": "❌ Это не фото. Отправьте скриншот как фото:",
+        "reading_screenshot": "🔍 Анализирую скриншот...",
+        "confirm_ocr_found": "🔍 Определено со скриншота: <b>{views}</b>",
+        "confirm_ocr_match": " ✅ совпадает с введённым",
+        "confirm_ocr_mismatch": "⚠️ Расхождение: вы ввели <b>{typed}</b>, на скриншоте <b>{ocr}</b>.",
+        "confirm_ocr_account": "👤 Аккаунт на скриншоте: @{handle}",
+        "confirm_ocr_account_mismatch": "⚠️ Аккаунт на скриншоте (@{detected}) не совпадает с вашим (@{registered})!",
         "btn_keep_link": "⤵️ Оставить старую ссылку",
         "confirm_block": "🔎 <b>Проверьте:</b>\n\n🔗 Ссылка: {url}\n👁 Просмотры: {views}\n📸 Скриншот: ✅\n\nВсё верно?",
         "btn_confirm": "✅ Подтвердить и отправить",
@@ -315,6 +340,8 @@ TEXTS: dict[str, dict[str, str]] = {
         "rev_final": "🏁 <b>ФИНАЛЬНАЯ ПРОВЕРКА</b> (sub #{sub_id})",
         "rev_flags": "\n⚠️ ФЛАГИ: {flags}",
         "rev_body": "👤 {name} — {insta}\n📱 {phone}\n🔗 <a href=\"{url}\">Ссылка на видео</a>\n👁 Введённые просмотры: <b>{views}</b>",
+        "rev_ocr": "\n🔍 Прочитано со скриншота: <b>{ocr}</b> (точность: {conf}%)",
+        "rev_ocr_account": "\n👤 Аккаунт на скриншоте: @{handle}",
         "btn_approve": "✅ Подтвердить",
         "btn_reject": "❌ Отклонить",
         "btn_changes": "✏️ На доработку",
@@ -411,15 +438,26 @@ TEXTS: dict[str, dict[str, str]] = {
             "📥 Отправили заявку: <b>{submitted}</b>\n"
             "⏳ На проверке: <b>{pending}</b>\n"
             "✅ Подтверждено: <b>{approved}</b>\n"
-            "❌ Отклонено: <b>{rejected}</b>\n\n"
+            "❌ Отклонено: <b>{rejected}</b>\n"
+            "✏️ На доработке: <b>{changes}</b>\n\n"
             "👁 Всего просмотров: <b>{views}</b>\n"
-            "📈 В среднем: <b>{avg}</b>\n"
+            "📈 В среднем: <b>{avg}</b>\n\n"
+            "📸 Скриншотов: <b>{reports}</b> (✅ {reports_ok} · ❌ {reports_rej} · ⏳ {reports_pending})\n"
+            "🔍 Проверено OCR: <b>{ocr_count}</b>\n"
             "🚫 Заблокировали бота: <b>{blocked}</b>"
         ),
         "stats_daily": "\n\n📅 Последние 14 дней (регистрации):\n{daily}",
         "stats_no_expo": "Expo пока нет.",
 
         "export_done": "📤 CSV-файлы готовы.",
+        "export_done_detail": (
+            "📤 <b>Подробные CSV-файлы готовы</b>\n\n"
+            "• <b>users.csv</b> — каждый участник: имя, Instagram, телефон, дата вступления\n"
+            "• <b>submissions.csv</b> — каждая заявка: статус, ссылка, просмотры, время, модератор\n"
+            "• <b>screenshots.csv</b> — каждый скриншот: введённое число, число OCR, время, модератор\n"
+            "• <b>leaderboard.csv</b> — рейтинг подтверждённых\n\n"
+            "Всё время по Ташкенту (UTC+5)."
+        ),
 
         # ---- случайный приз ----
         "abtn_random": "🎲 Случайный приз",

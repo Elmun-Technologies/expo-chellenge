@@ -1,4 +1,6 @@
 """Video yuborish, prosmotr yangilash, qayta yuborish, final tekshiruv."""
+import logging
+
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
@@ -10,9 +12,12 @@ from ..db.models import Submission, User, utcnow
 from ..i18n import t
 from ..keyboards import kb_cancel, kb_confirm, kb_keep_link
 from ..services.context import build_ctx
-from ..services.flags import compute_flags
+from ..services.flags import compute_flags, ocr_flags
 from ..services.utils import fmt_dt, fmt_int, is_reels_link, parse_views
+from ..services.vision import analyze_screenshot
 from ..states import SubmitVideo, UpdateViews
+
+log = logging.getLogger(__name__)
 
 router = Router(name="submission")
 router.message.filter(F.chat.type == "private")
@@ -25,6 +30,42 @@ UPDATE_BTN = {"🔄 Prosmotrni yangilash", "🔄 Обновить просмот
 
 
 # ---------------- guruhga yuborish ----------------
+
+def _ocr_confirm_lines(lang: str, typed_views: int, vision, db_user) -> str:
+    """Tasdiqlash ekraniga OCR natijalarini qo'shadi (mavjud bo'lsa)."""
+    if vision is None or not getattr(vision, "available", False):
+        return ""
+    out = ""
+    if vision.views is not None:
+        out += "\n" + t(lang, "confirm_ocr_found", views=fmt_int(vision.views))
+        if typed_views and vision.views == typed_views:
+            out += t(lang, "confirm_ocr_match")
+        else:
+            out += "\n" + t(lang, "confirm_ocr_mismatch",
+                            typed=fmt_int(typed_views or 0),
+                            ocr=fmt_int(vision.views))
+    if vision.handle:
+        out += "\n" + t(lang, "confirm_ocr_account", handle=vision.handle)
+        if db_user and db_user.instagram and \
+                vision.handle.lower() != db_user.instagram.lower():
+            out += "\n" + t(lang, "confirm_ocr_account_mismatch",
+                            detected=vision.handle,
+                            registered=db_user.instagram)
+    return out
+
+
+async def _run_ocr(message, file_id, db_user):
+    """Skrinshotni OCR bilan o'qiydi (xato bo'lsa None qaytaradi)."""
+    if not settings.ocr_enabled:
+        return None
+    try:
+        return await analyze_screenshot(
+            message.bot, file_id,
+            known_handle=db_user.instagram if db_user else None)
+    except Exception:  # noqa: BLE001
+        log.warning("OCR tahlili ishlamadi", exc_info=True)
+        return None
+
 
 async def send_to_review(bot, lang, sub: Submission, report, user: User,
                          kind: str, old_views: int | None = None):
@@ -49,6 +90,11 @@ async def send_to_review(bot, lang, sub: Submission, report, user: User,
         url=sub.video_url,
         views=fmt_int(report.views_count),
     )
+    if report.ocr_views is not None:
+        conf = int(round(report.ocr_conf * 100)) if report.ocr_conf else 0
+        caption += t(lang, "rev_ocr", ocr=fmt_int(report.ocr_views), conf=conf)
+    if report.ocr_handle:
+        caption += t(lang, "rev_ocr_account", handle=report.ocr_handle)
     if report.flags:
         caption += t(lang, "rev_flags", flags=", ".join(report.flags))
 
@@ -152,7 +198,21 @@ async def sub_views(message: Message, state: FSMContext):
 async def sub_screenshot(message: Message, state: FSMContext, session, db_user):
     data = await state.get_data()
     lang = data.get("lang", "uz")
-    await state.update_data(screenshot_file_id=message.photo[-1].file_id)
+    file_id = message.photo[-1].file_id
+    await state.update_data(screenshot_file_id=file_id)
+
+    # Skrinshotdan ko'ruvlar + akkauntni avtomatik o'qiymiz (tekshiruv uchun)
+    ack = await message.answer(t(lang, "reading_screenshot"))
+    vision = await _run_ocr(message, file_id, db_user)
+    await state.update_data(
+        ocr_views=vision.views if vision else None,
+        ocr_handle=vision.handle if vision else None,
+        ocr_conf=vision.confidence if vision else None,
+    )
+    try:
+        await ack.delete()
+    except Exception:  # noqa: BLE001
+        pass
 
     # tasdiqlash ekraini
     url = data.get("video_url")
@@ -164,10 +224,10 @@ async def sub_screenshot(message: Message, state: FSMContext, session, db_user):
         await state.clear()
         return await message.answer(t(lang, "err_generic"))
     await state.set_state(SubmitVideo.confirm)
-    await message.answer(
-        t(lang, "confirm_block", url=url, views=fmt_int(data["views"])),
-        reply_markup=kb_confirm(lang),
-    )
+    confirm_text = t(lang, "confirm_block", url=url,
+                     views=fmt_int(data["views"]))
+    confirm_text += _ocr_confirm_lines(lang, data["views"], vision, db_user)
+    await message.answer(confirm_text, reply_markup=kb_confirm(lang))
 
 
 @router.message(SubmitVideo.screenshot)
@@ -194,17 +254,25 @@ async def sub_confirm_yes(cb: CallbackQuery, state: FSMContext, session, db_user
     sub = await repo.save_submission(session, ctx.participant, ctx.expo.id,
                                      data["video_url"])
     from ..db.models import ViewReport
+    flags = compute_flags(None, data["views"], None, utcnow(),
+                          settings.suspect_jump_pct, settings.suspect_jump_abs)
+    flags += ocr_flags(data["views"], data.get("ocr_views"),
+                       db_user.instagram if db_user else None,
+                       data.get("ocr_handle"), settings.ocr_mismatch_pct)
     report = ViewReport(
         submission_id=sub.id,
         screenshot_file_id=data["screenshot_file_id"],
         views_count=data["views"],
-        flags=compute_flags(None, data["views"], None, utcnow(),
-                            settings.suspect_jump_pct, settings.suspect_jump_abs),
+        flags=flags,
+        ocr_views=data.get("ocr_views"),
+        ocr_handle=data.get("ocr_handle"),
+        ocr_conf=data.get("ocr_conf"),
     )
     session.add(report)
     await session.flush()
     await repo.audit(session, cb.from_user.id, "submission_created",
-                     {"sub_id": sub.id, "views": data["views"]})
+                     {"sub_id": sub.id, "views": data["views"],
+                      "ocr_views": data.get("ocr_views")})
     await state.clear()
 
     await send_to_review(cb.bot, lang, sub, report, db_user, kind="new")
@@ -294,23 +362,36 @@ async def upd_screenshot(message: Message, state: FSMContext, session, db_user, 
         return await message.answer(t(lang, "report_pending_exists"))
 
     last = await repo.last_approved_report(session, sub.id)
+    file_id = message.photo[-1].file_id
+
+    # Skrinshotdan ko'ruvlar + akkauntni avtomatik o'qiymiz (tekshiruv uchun)
+    vision = await _run_ocr(message, file_id, db_user)
+
     flags = compute_flags(
         sub.current_views, data["views"],
         sub.last_approved_at or (last.created_at if last else None),
         utcnow(), settings.suspect_jump_pct, settings.suspect_jump_abs,
     )
+    flags += ocr_flags(data["views"], vision.views if vision else None,
+                       db_user.instagram if db_user else None,
+                       vision.handle if vision else None,
+                       settings.ocr_mismatch_pct)
     from ..db.models import ViewReport
     report = ViewReport(
         submission_id=sub.id,
-        screenshot_file_id=message.photo[-1].file_id,
+        screenshot_file_id=file_id,
         views_count=data["views"],
         flags=flags,
         is_final=bool(data.get("is_final")),
+        ocr_views=vision.views if vision else None,
+        ocr_handle=vision.handle if vision else None,
+        ocr_conf=vision.confidence if vision else None,
     )
     session.add(report)
     await session.flush()
     await repo.audit(session, message.from_user.id, "views_update_request",
-                     {"sub_id": sub.id, "views": data["views"], "flags": flags})
+                     {"sub_id": sub.id, "views": data["views"], "flags": flags,
+                      "ocr_views": vision.views if vision else None})
     await state.clear()
 
     await send_to_review(message.bot, lang, sub, report, db_user,

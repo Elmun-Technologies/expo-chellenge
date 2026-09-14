@@ -25,6 +25,9 @@ class TestUtils:
     def test_reels_link(self):
         assert is_reels_link("https://www.instagram.com/reel/C1abcDEF23/")
         assert is_reels_link("https://instagram.com/reels/XYZ12345")
+        # Instagram ilovasidan nusxalangan havolalar ko'pincha query bilan keladi
+        assert is_reels_link("https://www.instagram.com/reel/C1abcDEF23/?igsh=abc123")
+        assert is_reels_link("https://instagram.com/reel/C1abcDEF23?utm_source=ig")
         assert not is_reels_link("https://youtu.be/xyz")
         assert not is_reels_link("instagram.com/reel/abc")  # https shart
 

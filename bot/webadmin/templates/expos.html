@@ -34,8 +34,8 @@
       <td>{{ e.id }}</td>
       <td>{{ e.title }}</td>
       <td><span class="badge {{ e.status }}">{{ e.status }}</span></td>
-      <td class="muted">{{ e.start_at.strftime("%d.%m.%Y %H:%M") }}</td>
-      <td class="muted">{{ e.end_at.strftime("%d.%m.%Y %H:%M") }}</td>
+      <td class="muted">{{ e.start_at | tash }}</td>
+      <td class="muted">{{ e.end_at | tash }}</td>
       <td>
         {% if e.status == "draft" %}
         <form method="post" action="/admin/expos/{{ e.id }}/activate" style="display:inline">

@@ -1,7 +1,5 @@
 """Web-admin panel: dashboard, expo'lar, topshiriqlar, reyting, rassilka."""
 import asyncio
-import csv
-import io
 import logging
 import math
 import os
@@ -14,11 +12,12 @@ from sqlalchemy import func, select
 from ..config import get_settings
 from ..constants import BCTarget, SubStatus
 from ..db import repo
-from ..db.models import Participant, Submission, User, ViewReport
+from ..db.models import Participant, User
 from ..db.session import SessionFactory
 from ..handlers.broadcast import resolve_targets, _run_broadcast
 from ..handlers.review import _notify_user, _user_of
-from ..services.utils import tash_to_utc
+from ..services.export import build_exports, zip_files
+from ..services.utils import fmt_dt, fmt_int, tash_to_utc
 from . import auth
 
 log = logging.getLogger(__name__)
@@ -29,6 +28,9 @@ jinja_env = Environment(
     loader=FileSystemLoader(_templates_dir),
     autoescape=select_autoescape(["html"]),
 )
+# Toshkent vaqtida ko'rsatish + minglik ajratgich bilan son formatlash
+jinja_env.filters["tash"] = fmt_dt
+jinja_env.filters["fmt"] = fmt_int
 
 
 def render(template: str, **ctx) -> web.Response:
@@ -86,6 +88,7 @@ async def dashboard(request: web.Request) -> web.Response:
             "pending": await repo.count_submissions(session, expo.id, SubStatus.PENDING),
             "approved": await repo.count_submissions(session, expo.id, SubStatus.APPROVED),
             "rejected": await repo.count_submissions(session, expo.id, SubStatus.REJECTED),
+            "changes": await repo.count_submissions(session, expo.id, SubStatus.CHANGES),
             "views": await repo.total_views(session, expo.id),
         }
         top5 = await repo.top_submissions(session, expo.id, limit=5)
@@ -176,6 +179,13 @@ async def submissions_list(request: web.Request) -> web.Response:
                      rows=rows, status=status, q=q, page=page, pages=pages)
 
 
+async def _name_of(session, tg_id) -> str:
+    if not tg_id:
+        return "—"
+    u = await repo.get_user_by_tg(session, tg_id)
+    return (u.username or u.full_name or str(tg_id)) if u else str(tg_id)
+
+
 async def submission_detail(request: web.Request, flash=None, flash_type=None) -> web.Response:
     sub_id = int(request.match_info["sub_id"])
     async with SessionFactory() as session:
@@ -185,8 +195,12 @@ async def submission_detail(request: web.Request, flash=None, flash_type=None) -
         user = await _user_of(session, sub)
         report = await repo.pending_report_for(session, sub.id)
         history = await repo.user_reports(session, sub.id, limit=15)
+        report_reviewer = await _name_of(session, report.reviewed_by) if report else None
+        history_names = {r.id: await _name_of(session, r.reviewed_by) for r in history}
         return render("submission_detail.html", active="submissions", sub=sub, user=user,
-                     report=report, history=history, flash=flash, flash_type=flash_type)
+                     report=report, report_reviewer=report_reviewer,
+                     history=history, history_names=history_names,
+                     flash=flash, flash_type=flash_type)
 
 
 async def submission_approve(request: web.Request) -> web.Response:
@@ -281,50 +295,28 @@ async def broadcast_send(request: web.Request) -> web.Response:
 
 # ---------------- export ----------------
 
-def _csv_response(headers, rows, filename) -> web.Response:
-    buf = io.StringIO()
-    w = csv.writer(buf)
-    w.writerow(headers)
-    w.writerows(rows)
-    return web.Response(
-        body=buf.getvalue().encode("utf-8-sig"), content_type="text/csv",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'})
-
-
 async def export_csv(request: web.Request) -> web.Response:
+    """Batafsil CSV eksport: /admin/export/all → ZIP, /{kind} → bitta fayl."""
     kind = request.match_info["kind"]
     async with SessionFactory() as session:
         expo = await _current_or_latest_expo(session)
         if expo is None:
             raise web.HTTPNotFound(text="Faol expo yo'q")
-        if kind == "users":
-            users = (await session.execute(
-                select(User).join(Participant, Participant.user_id == User.id)
-                .where(Participant.expo_id == expo.id))).scalars().all()
-            return _csv_response(
-                ["tg_id", "username", "full_name", "phone", "instagram", "language", "joined"],
-                [(u.tg_id, u.username, u.full_name, u.phone, u.instagram, u.language,
-                  u.created_at.strftime("%Y-%m-%d %H:%M")) for u in users],
-                "users.csv")
-        if kind == "leaderboard":
-            subs = await repo.top_submissions(session, expo.id)
-            return _csv_response(
-                ["rank", "full_name", "instagram", "url", "views", "submitted_at"],
-                [(i, u.full_name, u.instagram, s.video_url, s.current_views,
-                  s.submitted_at.strftime("%Y-%m-%d %H:%M"))
-                 for i, (s, p, u) in enumerate(subs, start=1)],
-                "leaderboard.csv")
-        if kind == "views":
-            reports = (await session.execute(
-                select(ViewReport).join(Submission, ViewReport.submission_id == Submission.id)
-                .where(Submission.expo_id == expo.id)
-                .order_by(ViewReport.id))).scalars().all()
-            return _csv_response(
-                ["sub_id", "views", "status", "is_final", "flags", "created_at"],
-                [(r.submission_id, r.views_count, r.status, r.is_final,
-                  ",".join(r.flags or []), r.created_at.strftime("%Y-%m-%d %H:%M"))
-                 for r in reports],
-                "view_history.csv")
+        files = await build_exports(session, expo)
+        expo_id = expo.id
+
+    if kind == "all":
+        body = zip_files(files)
+        return web.Response(
+            body=body, content_type="application/zip",
+            headers={"Content-Disposition":
+                     f'attachment; filename="expo{expo_id}_analytics.zip"'})
+
+    for filename, data in files:
+        if filename == f"expo{expo_id}_{kind}.csv":
+            return web.Response(
+                body=data, content_type="text/csv",
+                headers={"Content-Disposition": f'attachment; filename="{filename}"'})
     raise web.HTTPNotFound()
 
 

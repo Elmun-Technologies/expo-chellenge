@@ -29,7 +29,7 @@
       <td>{{ u.phone or '—' }}</td>
       <td>{{ "{:,}".format(sub.current_views).replace(",", " ") }}</td>
       <td><span class="badge {{ sub.status }}">{{ sub.status }}</span></td>
-      <td class="muted">{{ sub.submitted_at.strftime("%d.%m %H:%M") }}</td>
+      <td class="muted">{{ sub.submitted_at | tash }}</td>
       <td><a href="/admin/submissions/{{ sub.id }}" class="btn sm">Ochish</a></td>
     </tr>
     {% endfor %}

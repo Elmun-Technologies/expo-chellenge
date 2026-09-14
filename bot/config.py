@@ -40,6 +40,11 @@ class Settings(BaseSettings):
     # Final tekshiruvga beriladigan vaqt (soat)
     final_check_hours: int = 24
 
+    # Skrinshot OCR tekshiruvi (RapidOCR, offline)
+    ocr_enabled: bool = True
+    # Kiritilgan son OCR sonidan shuncha % dan ko'p farq qilsa -> flag
+    ocr_mismatch_pct: int = 5
+
     @property
     def superadmin_ids(self) -> list[int]:
         out = []

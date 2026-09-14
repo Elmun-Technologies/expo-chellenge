@@ -15,7 +15,7 @@
       <td>@{{ u.instagram or '—' }}</td>
       <td>{{ u.phone or '—' }}</td>
       <td>{{ "{:,}".format(sub.current_views).replace(",", " ") }}</td>
-      <td class="muted">{{ sub.submitted_at.strftime("%d.%m.%Y") }}</td>
+      <td class="muted">{{ sub.submitted_at | tash }}</td>
     </tr>
     {% endfor %}
   </table>
