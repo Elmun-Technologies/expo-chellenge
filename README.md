@@ -79,6 +79,10 @@ fly deploy                               # migratsiya release_command da yuritil
   ichki scheduler har 30 s da tekshirib o'zi yuboradi; paneldan bekor qilish
   ham mumkin.
 - **👥 Guruhda tezkor statistika**: review guruhida `/stats` va `/top`.
+- **💬 Moderator javobi (reply)**: review guruhida istalgan arizaga **reply**
+  qilib yozilgan xabar (matn/rasm/video) aynan o'sha foydalanuvchiga bot
+  orqali yetkaziladi — raqam noto'g'ri yoki ma'lumot yetishmayotgan bo'lsa
+  moderator to'g'ridan-to'g'ri yozib aniqlashtiradi.
 - **🕐 Vaqt zonasi**: admin kiritadigan barcha sanalar **Toshkent (UTC+5)** da
   qabul qilinadi, bazada UTC saqlanadi.
 - **🔍 Skrinshotni avtomatik tekshirish (OCR)**: foydalanuvchi ko'ruvlar sonini

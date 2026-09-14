@@ -203,6 +203,14 @@ async def last_approved_report(session: AsyncSession, submission_id: int) -> Vie
         .order_by(ViewReport.id.desc()))).scalars().first()
 
 
+async def get_report_by_review_msg(session: AsyncSession,
+                                   message_id: int) -> ViewReport | None:
+    """Review guruhidagi moderatsiya xabari (message_id) bo'yicha report topadi."""
+    return (await session.execute(
+        select(ViewReport).where(ViewReport.review_msg_id == message_id)
+    )).scalars().first()
+
+
 async def user_reports(session: AsyncSession, submission_id: int, limit: int = 10) -> list[ViewReport]:
     return list((await session.execute(
         select(ViewReport).where(ViewReport.submission_id == submission_id,

@@ -97,21 +97,28 @@ async def send_to_review(bot, lang, sub: Submission, report, user: User,
         caption += t(lang, "rev_ocr_account", handle=report.ocr_handle)
     if report.flags:
         caption += t(lang, "rev_flags", flags=", ".join(report.flags))
+    caption += t(lang, "rev_reply_hint")
 
     from ..keyboards import kb_review
     if settings.review_group_id:
         try:
-            await bot.send_photo(
+            sent = await bot.send_photo(
                 chat_id=settings.review_group_id,
                 photo=report.screenshot_file_id,
                 caption=caption[:1020],
                 reply_markup=kb_review(sub.id, lang),
             )
+            report.review_msg_id = sent.message_id
         except Exception:
             # fallback: rasmlarsiz
-            await bot.send_message(chat_id=settings.review_group_id,
-                                   text=(caption + f"\n📸 file_id: {report.screenshot_file_id}")[:4000],
-                                   reply_markup=kb_review(sub.id, lang))
+            try:
+                sent = await bot.send_message(
+                    chat_id=settings.review_group_id,
+                    text=(caption + f"\n📸 file_id: {report.screenshot_file_id}")[:4000],
+                    reply_markup=kb_review(sub.id, lang))
+                report.review_msg_id = sent.message_id
+            except Exception:
+                pass
     else:
         import logging
         logging.getLogger(__name__).warning("REVIEW_GROUP_ID sozlanmagan!")

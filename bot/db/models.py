@@ -105,6 +105,9 @@ class ViewReport(Base):
     ocr_views: Mapped[int | None] = mapped_column(Integer, nullable=True)
     ocr_handle: Mapped[str | None] = mapped_column(String(64), nullable=True)
     ocr_conf: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # Review guruhidagi moderatsiya xabarining message_id si — moderator reply
+    # qilganda shu orqali tegishli foydalanuvchini topamiz
+    review_msg_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     reviewed_by: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
