@@ -11,8 +11,8 @@
   <div class="field"><label>Video havolasi</label>
     <a href="{{ sub.video_url }}" target="_blank" style="color:var(--accent)">{{ sub.video_url }}</a></div>
   <div class="row">
-    <div class="field"><label>Joriy ko'ruv</label><div>{{ "{:,}".format(sub.current_views).replace(",", " ") }}</div></div>
-    <div class="field"><label>Yuborilgan</label><div>{{ sub.submitted_at.strftime("%d.%m.%Y %H:%M") }}</div></div>
+    <div class="field"><label>Joriy ko'ruv</label><div>{{ sub.current_views | fmt }}</div></div>
+    <div class="field"><label>Yuborilgan (Toshkent)</label><div>{{ sub.submitted_at | tash }}</div></div>
   </div>
   {% if sub.reject_reason %}
   <div class="field"><label>Rad etish sababi</label><div>{{ sub.reject_reason }}</div></div>
@@ -24,9 +24,28 @@
   <strong style="display:block;margin-bottom:12px">🔍 Ko'rib chiqilishi kerak — yangi skrinshot</strong>
   <div class="row" style="align-items:flex-start">
     <img class="shot" src="/admin/file/{{ report.screenshot_file_id }}" alt="skrinshot">
-    <div>
-      <div class="field"><label>E'lon qilingan ko'ruv soni</label><div style="font-size:22px;font-weight:700">
-        {{ "{:,}".format(report.views_count).replace(",", " ") }}</div></div>
+    <div style="flex:1;min-width:280px">
+      <div class="row">
+        <div class="field"><label>Kiritilgan ko'ruv</label>
+          <div style="font-size:22px;font-weight:700">{{ report.views_count | fmt }}</div></div>
+        <div class="field"><label>Skrinshotdan OCR</label>
+          <div style="font-size:22px;font-weight:700">
+            {% if report.ocr_views is not none %}{{ report.ocr_views | fmt }}
+              {% if report.ocr_views == report.views_count %}
+                <span class="badge approved">✅ mos</span>
+              {% else %}
+                <span class="badge rejected">⚠️ farq</span>
+              {% endif %}
+            {% else %}<span class="muted">— o'qilmadi</span>{% endif %}
+          </div></div>
+      </div>
+      <div class="field"><label>Skrinshotdagi akkaunt (OCR)</label>
+        <div>{% if report.ocr_handle %}@{{ report.ocr_handle }}
+          {% if user.instagram and report.ocr_handle | lower == user.instagram | lower %}
+            <span class="badge approved">✅ mos</span>
+          {% else %}<span class="badge rejected">⚠️ farq</span>{% endif %}
+          {% else %}<span class="muted">— aniqlanmadi</span>{% endif %}</div>
+      </div>
       {% if report.flags %}
       <div class="field"><label>⚠️ Flag'lar</label>
         {% for f in report.flags %}<span class="badge rejected">{{ f }}</span>{% endfor %}</div>
@@ -49,10 +68,15 @@
   <strong style="display:block;margin-bottom:12px">📈 Ko'ruv tarixi (tasdiqlangan)</strong>
   {% if history %}
   <table>
-    <tr><th>Sana</th><th>Ko'ruv</th></tr>
+    <tr><th>Sana (Toshkent)</th><th>Kiritilgan</th><th>OCR</th><th>Akkaunt</th><th>Moderator</th></tr>
     {% for r in history %}
-    <tr><td class="muted">{{ r.created_at.strftime("%d.%m.%Y %H:%M") }}</td>
-        <td>{{ "{:,}".format(r.views_count).replace(",", " ") }}</td></tr>
+    <tr>
+      <td class="muted">{{ r.created_at | tash }}</td>
+      <td>{{ r.views_count | fmt }}</td>
+      <td>{{ r.ocr_views | fmt if r.ocr_views is not none else '—' }}</td>
+      <td>{% if r.ocr_handle %}@{{ r.ocr_handle }}{% else %}—{% endif %}</td>
+      <td class="muted">{{ history_names.get(r.id, '—') }}</td>
+    </tr>
     {% endfor %}
   </table>
   {% else %}

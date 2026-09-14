@@ -1,8 +1,8 @@
 """SQLAlchemy modellari. Barcha vaqtlar naive UTC."""
 from datetime import datetime, timezone
 
-from sqlalchemy import (BigInteger, Boolean, DateTime, ForeignKey, Integer,
-                        String, Text, UniqueConstraint, func)
+from sqlalchemy import (BigInteger, Boolean, DateTime, Float, ForeignKey,
+                        Integer, String, Text, UniqueConstraint, func)
 from sqlalchemy.dialects.sqlite import JSON as SQLiteJSON
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -101,6 +101,13 @@ class ViewReport(Base):
     status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
     flags: Mapped[list] = mapped_column(SQLiteJSON, default=list)
     is_final: Mapped[bool] = mapped_column(Boolean, default=False)
+    # OCR tekshiruvi: skrinshotdan avtomatik o'qilgan qiymatlar (None = o'qilmagan)
+    ocr_views: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    ocr_handle: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    ocr_conf: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # Review guruhidagi moderatsiya xabarining message_id si — moderator reply
+    # qilganda shu orqali tegishli foydalanuvchini topamiz
+    review_msg_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     reviewed_by: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)

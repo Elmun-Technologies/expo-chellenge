@@ -158,6 +158,43 @@ async def custom_reason_reply(message: Message, session, role):
     await message.answer(f"✅ Ko'rib chiqildi. Sabab: {reason}")
 
 
+# ---------------- moderator → foydalanuvchiga reply ----------------
+
+async def _forward_reply(message: Message, user: User, bot: Bot):
+    """Moderatorning xabarini tegishli foydalanuvchiga yetkazadi."""
+    await bot.send_message(user.tg_id, t(user.language or "uz", "mod_reply_header"))
+    # Xabarni o'zi forward qilamiz — matn/rasm/video va formatlash saqlanadi
+    await message.forward(user.tg_id)
+
+
+@router.message(F.reply_to_message)
+async def moderator_reply(message: Message, session, role):
+    """Moderator review xabariga reply yozsa — xabar foydalanuvchiga yetkaziladi."""
+    if not await can_review(message.bot, role, message.chat.id, message.from_user.id):
+        return
+
+    report = await repo.get_report_by_review_msg(
+        session, message.reply_to_message.message_id)
+    if report is None:
+        return
+    sub = await repo.get_submission(session, report.submission_id)
+    if sub is None:
+        return await message.reply("Ariza topilmadi.")
+    user = await _user_of(session, sub)
+    if user is None:
+        return await message.reply("Foydalanuvchi topilmadi.")
+
+    await repo.audit(session, message.from_user.id, "mod_reply_user",
+                     {"sub_id": sub.id, "report_id": report.id,
+                      "to_tg": user.tg_id})
+    try:
+        await _forward_reply(message, user, message.bot)
+    except Exception as e:
+        log.warning("Moderator javobi yuborilmadi (%s): %s", user.tg_id, e)
+        return await message.reply(t("uz", "mod_reply_failed"))
+    await message.reply(t("uz", "mod_reply_sent"))
+
+
 # ---------------- umumiy ro'sxat ----------------
 
 async def apply_decision(*, bot: Bot, session: AsyncSession, sub: Submission,

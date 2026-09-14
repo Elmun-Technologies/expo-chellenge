@@ -79,8 +79,38 @@ fly deploy                               # migratsiya release_command da yuritil
   ichki scheduler har 30 s da tekshirib o'zi yuboradi; paneldan bekor qilish
   ham mumkin.
 - **👥 Guruhda tezkor statistika**: review guruhida `/stats` va `/top`.
+- **💬 Moderator javobi (reply)**: review guruhida istalgan arizaga **reply**
+  qilib yozilgan xabar (matn/rasm/video) aynan o'sha foydalanuvchiga bot
+  orqali yetkaziladi — raqam noto'g'ri yoki ma'lumot yetishmayotgan bo'lsa
+  moderator to'g'ridan-to'g'ri yozib aniqlashtiradi.
 - **🕐 Vaqt zonasi**: admin kiritadigan barcha sanalar **Toshkent (UTC+5)** da
   qabul qilinadi, bazada UTC saqlanadi.
+- **🔍 Skrinshotni avtomatik tekshirish (OCR)**: foydalanuvchi ko'ruvlar sonini
+  qo'lda yozadi, bot skrinshotni **RapidOCR** (offline, API kalit shart emas)
+  bilan o'qib **ko'ruvlar soni va akkaunt nomini** aniqlaydi va solishtiradi.
+  Farq bo'lsa moderatorga `OCR_VIEW_MISMATCH` / `ACCOUNT_MISMATCH` belgisi
+  chiqadi — aniq raqamlar skrinshot asosida tekshiriladi.
+
+## 🔍 Skrinshot OCR tekshiruvi
+
+Har bir skrinshot moderatsiyaga yuborilganda bot uni o'zi o'qib chiqadi:
+
+- **Ko'ruvlar soni** — `12 500`, `12,500`, `12.5K`, `1,2M`, `12,5 ming`,
+  `1,2 млн` kabi formatlarni tushunadi.
+- **Akkaunt nomi** — `@username` ni aniqlaydi (registrdagi nom bilan
+  solishtiradi; `_`↔bo'shliq OCR xatosiga chidamli).
+
+Natija foydalanuvchiga tasdiqlash oynasida, moderatorga esa review xabarida
+ko'rsatiladi. Kiritilgan son OCR sonidan `OCR_MISMATCH_PCT`% dan ko'p farq
+qilsa yoki akkaunt mos kelmasa — flag qo'yiladi. Skrinshotlar tarixidagi
+barcha OCR qiymatlari bazada (`view_reports.ocr_*`) saqlanadi va CSV'ga
+chiqadi.
+
+> **Linux serverlarda** RapidOCR (OpenCV orqali) `libgl1` kutubxonasini
+> talab qiladi — Dockerfile bunga ega. Lokal Linux'da OCR ishlamasa:
+> `apt-get install -y libgl1 libglib2.0-0`. OCR yuklanmasa ham bot ishdan
+> chiqmaydi — faqat avtomatik tekshiruv o'chiriladi (`OCR_ENABLED=false`
+> bilan butunlay o'chirish mumkin).
 
 ## 🖥 Web-admin panel
 
@@ -98,7 +128,24 @@ fly secrets set ADMIN_PASSWORD='kuchli-parol'
 ```
 
 Panel imkoniyatlari: dashboard statistikasi, Expo yaratish/faollashtirish/yakunlash, topshiriqlarni
-qidirish/filtrlash va tasdiqlash/rad etish (skrinshot bilan), reyting, rassilka, CSV eksport.
+qidirish/filtrlash va tasdiqlash/rad etish (skrinshot bilan, kiritilgan son va OCR natijasi
+yonma-yon ko'rsatiladi), reyting, rassilka, CSV eksport.
+
+## 📤 CSV eksport (batafsil analitika)
+
+Telegram'dagi `/export` yoki panel'dagi **⬇️ Eksport (CSV)** (bitta ZIP) to'liq
+ma'lumot beradi — har bir faylda vaqtlar **Toshkent (UTC+5)** bo'yicha va
+ustunlar tushunarli nomlangan:
+
+| Fayl | Ichidagi ma'lumot |
+|---|---|
+| `expoN_users.csv` | har bir ishtirokchi: tg_id, username, ism, telefon, Instagram, ro'yxatdan o'tgan/qo'shilgan vaqti, arizalar soni, joriy ko'ruv, holat |
+| `expoN_submissions.csv` | har bir ariza: holat, video havola, ko'ruvlar, yuborilgan/ko'rilgan vaqti, moderator, rad etish sababi |
+| `expoN_screenshots.csv` | **har bir skrinshot**: kiritilgan son, OCR soni, OCR akkaunti, moslik (yes/no), status, flaglar, yuborilgan/ko'rilgan vaqti, moderator |
+| `expoN_leaderboard.csv` | tasdiqlanganlar reytingi (o'rin, ism, akkaunt, havola, ko'ruv) |
+
+Ya'ni "qaysi foydalanuvchi, qaysi akkaunt, qachon skrinshot yuborgan, nima
+kiritgan, skrinshotda aslida nima bor, kim tasdiqlagan" — hammasi bir joyda.
 
 ## 🛠 Admin
 

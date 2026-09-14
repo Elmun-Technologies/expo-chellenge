@@ -11,3 +11,9 @@ Jinja2>=3.1             # web-admin panel shablonlari
 aiosqlite>=0.19        # lokal dev (sqlite)
 asyncpg>=0.29          # prodaksn (postgres, fly.io)
 psycopg2-binary>=2.9   # alembic migratsiyalari (sync)
+
+# --- Skrinshot OCR tekshiruvi (offline, API kalit kerak emas) ---
+# Eslatma: rapidocr cv2 (opencv-python) ishlatadi; Linux serverlarda libgl1
+# kerak — Dockerfile bunga ega. Lokal Linux'da OCR ishlamasa:
+#   apt-get install -y libgl1 libglib2.0-0
+rapidocr-onnxruntime>=1.4.1
